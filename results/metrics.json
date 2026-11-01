@@ -1,0 +1,51 @@
+{
+  "cutoff_unix": 975768738,
+  "train_events": 800164,
+  "test_events": 200045,
+  "test_warm_events": 104452,
+  "metrics": {
+    "popularity": {
+      "n_users_eval": 1143,
+      "n_test_events": 104452,
+      "recall@10": 0.041080456337097594,
+      "ndcg@10": 0.2650252076382897,
+      "recall@50": 0.13817256887945173,
+      "ndcg@50": 0.22889965523501923
+    },
+    "matrix_factorization": {
+      "n_users_eval": 1143,
+      "n_test_events": 104452,
+      "recall@10": 0.03331012054695701,
+      "ndcg@10": 0.18453817567726027,
+      "recall@50": 0.12811526460301612,
+      "ndcg@50": 0.18820794727011844
+    },
+    "two_tower": {
+      "n_users_eval": 1143,
+      "n_test_events": 104452,
+      "recall@10": 0.00858554434827364,
+      "ndcg@10": 0.05340563456581418,
+      "recall@50": 0.04875594165521917,
+      "ndcg@50": 0.06666595141031152
+    }
+  },
+  "n_users": 6040,
+  "n_items": 3706,
+  "mf_params": {
+    "dim": 64,
+    "epochs": 10,
+    "negatives": 4,
+    "batch_size": 8192,
+    "lr": 0.02,
+    "max_per_epoch": 400000,
+    "seed": 42
+  },
+  "two_tower_params": {
+    "dim": 64,
+    "epochs": 16,
+    "batch_size": 2048,
+    "lr": 0.003,
+    "max_per_epoch": 400000,
+    "seed": 42
+  }
+}

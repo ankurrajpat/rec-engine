@@ -1,0 +1,12 @@
+{
+  "n_ratings": 1000209,
+  "n_users": 6040,
+  "n_items": 3706,
+  "density": 0.044683625622312845,
+  "sparsity": 0.9553163743776871,
+  "rating_mean": 3.581564453029317,
+  "train_events": 800164,
+  "test_events": 200045,
+  "split_cutoff_unix": 975768738,
+  "test_rows_dropped_cold": 95593
+}

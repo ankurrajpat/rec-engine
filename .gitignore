@@ -1,0 +1,12 @@
+*.pyc
+.pytest_cache/
+.streamlit/secrets.toml
+__pycache__/
+artifacts/test.csv.gz
+artifacts/test_warm.csv.gz
+artifacts/train.csv.gz
+data/raw/ml-1m.zip
+data/raw/ml-1m/*.dat
+data/raw/ml-1m/README
+mlflow.db
+mlruns/

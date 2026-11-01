@@ -1,0 +1,8 @@
+{
+  "n_requests": 300,
+  "endpoint": "GET /recommend?k=10",
+  "p50_ms": 3.07,
+  "p95_ms": 3.26,
+  "mean_ms": 3.03,
+  "note": "local uvicorn, single worker, CPU"
+}
