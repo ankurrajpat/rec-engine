@@ -20,7 +20,7 @@ def load_artifacts():
     movies = pd.read_csv(config.DATA_DIR / "movies.dat", sep="::", engine="python",
                          encoding="latin-1", names=["item_raw", "title", "genres"])
     id_maps = json.loads((config.DATA_DIR / "id_maps.json").read_text())
-    train = pd.read_csv(art / "train.csv.gz")
+    train = pd.read_csv(next(art.glob("*train.csv.gz")))
     return {
         "user_emb": np.load(art / "user_embeddings.npy"),
         "item_emb": np.load(art / "item_embeddings.npy"),
