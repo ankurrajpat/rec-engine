@@ -1,0 +1,10 @@
+# Job-matching API. Build artifacts first: python scripts/run_jobmatch.py
+FROM python:3.10-slim
+WORKDIR /app
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir faiss-cpu fastapi uvicorn lightgbm rank-bm25 scikit-learn sentence-transformers pandas numpy
+COPY src ./src
+COPY serve ./serve
+COPY artifacts/jobmatch ./artifacts/jobmatch
+EXPOSE 8001
+CMD ["uvicorn", "serve.jobmatch_app:app", "--host", "0.0.0.0", "--port", "8001"]

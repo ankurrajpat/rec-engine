@@ -10,3 +10,6 @@ data/raw/ml-1m/*.dat
 data/raw/ml-1m/README
 mlflow.db
 mlruns/
+data/jobmatch/
+artifacts/jobmatch/jobmatch.db
+artifacts/jobmatch/embeddings.npz
