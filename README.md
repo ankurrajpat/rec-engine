@@ -68,6 +68,51 @@ ratings.dat ──> chronological split ──> popularity baseline
 - **Tracking**: every run logs params + metrics to MLflow (`mlflow.db`) and
   `results/runs.jsonl`.
 
+## Job matching track (resume-to-job ranking)
+
+A second pipeline in `src/jobmatch/` applies the same retrieve-then-rank design to hiring:
+given a new job description, rank candidate resumes.
+
+**Data.** [cnamuangtoun/resume-job-description-fit](https://huggingface.co/datasets/cnamuangtoun/resume-job-description-fit)
+(Hugging Face; no license stated on the dataset card, so the data is downloaded by the script and not
+redistributed here). 8,000 labelled (resume, job) pairs, 643 resumes, 351 jobs, labels No Fit / Potential Fit /
+Good Fit (graded 0/1/2). The official `test.csv` contains **71 jobs that never appear in train**, so the test
+simulates a brand-new posting arriving. Hyper-parameters were chosen by 5-fold CV grouped by job on train only.
+
+**Pipeline.** BGE-small embeddings (`BAAI/bge-small-en-v1.5`) in a FAISS index -> top-50 retrieval -> LightGBM
+LambdaRank reranker over BM25, TF-IDF, dense cosine, keyword overlap and length features (also standardised within each
+job's list). Pairs and labels live in normalised SQLite tables (`candidates`, `jobs`, `fit_labels`; see
+`scripts/jobmatch_sql.sql`). Served by `serve/jobmatch_app.py` (`POST /match`).
+
+**Results** (71 held-out jobs, 1,759 labelled pairs, mean over jobs, 95% bootstrap CI over jobs):
+
+| System | NDCG@5 | NDCG@10 | MAP (Good Fit) |
+|---|---|---|---|
+| Random | 0.527 | 0.578 (0.524-0.629) | 0.571 |
+| BM25 | 0.598 | 0.628 (0.568-0.687) | 0.605 |
+| TF-IDF | 0.620 | 0.654 (0.591-0.715) | 0.662 |
+| Dense (BGE-small) | 0.703 | 0.734 (0.672-0.788) | 0.712 |
+| Reciprocal-rank fusion of the three | 0.657 | 0.670 (0.609-0.730) | 0.664 |
+| **LambdaRank reranker** | **0.750** | **0.749 (0.687-0.806)** | **0.757** |
+
+Paired difference in NDCG@10 over jobs: reranker beats BM25 by +0.122 (CI +0.074 to +0.166) and TF-IDF by +0.095
+(CI +0.053 to +0.138). Against the dense retriever alone the gain is **+0.015 (CI -0.020 to +0.050), not
+statistically distinguishable**. Embeddings carry most of the signal; the reranker mainly fixes what lexical
+baselines miss.
+
+**Caveats.**
+- Evaluation ranks each job's *labelled* candidate list (about 25 per job), not the whole pool, because unlabelled
+  pairs have unknown fit. Random scores 0.578 here, so read gains relative to that, not to zero.
+- Resume length is among the top reranker features (about 22% of gain), which suggests the labels partly reward
+  longer resumes. A real deployment would need audited labels.
+- The dataset appears to be synthetic or LLM-generated, not real hiring outcomes. No claim here is about real users.
+- Candidates are seen in both train and test (jobs are disjoint), so this measures new-job generalisation, not
+  new-candidate generalisation.
+- Docker image `Dockerfile.jobmatch` is written but not built (no Docker daemon in the authoring environment).
+- Warm-up: first `/match` call loads the embedding model (about 8 s on 1 CPU); later calls took about 0.5 s.
+
+Reproduce: `python scripts/run_jobmatch.py` (about 6 min on 1 CPU), then `uvicorn serve.jobmatch_app:app`.
+
 ## Serving latency (measured, local uvicorn, single worker, CPU)
 
 300 requests to `GET /recommend?k=10`: **p50 3.07 ms, p95 3.26 ms**.
@@ -128,6 +173,7 @@ docker run -p 8000:8000 rec-engine
 ## Repo layout
 
 ```
+src/jobmatch/   resume-to-job ranking: data, features, metrics, two-stage matcher
 src/            data loading, chronological split, metrics, tracking, models
 scripts/        EDA, staged training, cold-start analysis, FAISS build, latency probe
 serve/app.py    FastAPI /recommend + /health
